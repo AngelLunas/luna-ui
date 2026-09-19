@@ -207,6 +207,11 @@ export function groupEvents(events: readonly RunEvent[]): ConversationItem[] {
   const messageItems = new Map<string, AgentMessageItem>()
   // tool_call_id -> the ToolCallItem we're waiting on a result for.
   const toolItems = new Map<string, ToolCallItem>()
+  // Action nodes call one tool at a time and emit tool_called/tool_result
+  // without a tool_use_id; their result is matched to the latest unresolved
+  // call of the same name in the same node.
+  const anonymousCalls = new Map<string, string>()
+  const anonymousKey = (event: RunEvent, name: string) => `${event.node_id ?? ''}:${name}`
   // iteration_id -> the IterationBlock we're folding sub-events into.
   // Stays populated for the lifetime of the run — once an iteration
   // completes its block stays in the node's children, and we still want
@@ -408,10 +413,10 @@ export function groupEvents(events: readonly RunEvent[]): ConversationItem[] {
     }
 
     if (type === RunEventType.ToolCalled) {
-      const id =
+      const explicitId =
         asString(event.payload.tool_use_id) ??
-        asString(event.payload.operation_id) ??
-        event.id
+        asString(event.payload.operation_id)
+      const id = explicitId ?? event.id
       const operation = asOperation(event.payload.operation)
       const connector = asConnector(event.payload.connector)
       const item: ToolCallItem = {
@@ -431,17 +436,21 @@ export function groupEvents(events: readonly RunEvent[]): ConversationItem[] {
       if (operation) item.operation = operation
       if (connector) item.connector = connector
       toolItems.set(id, item)
+      if (explicitId === undefined) anonymousCalls.set(anonymousKey(event, item.name), id)
       containerFor(event).children.push(item)
       continue
     }
 
     if (type === RunEventType.ToolResult) {
-      const id =
+      const explicitId =
         asString(event.payload.tool_use_id) ??
-        asString(event.payload.operation_id) ??
-        ''
+        asString(event.payload.operation_id)
+      const resultName =
+        asString(event.payload.name) ?? asString(event.payload.tool) ?? 'tool'
+      const id = explicitId ?? anonymousCalls.get(anonymousKey(event, resultName)) ?? ''
       const item = toolItems.get(id)
       if (item) {
+        if (explicitId === undefined) anonymousCalls.delete(anonymousKey(event, resultName))
         item.resolved = true
         item.isError = event.payload.is_error === true
         item.error = event.payload.error
