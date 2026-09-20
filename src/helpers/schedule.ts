@@ -144,14 +144,34 @@ export function cronToRule(cron: string, tz: string): ScheduleRule {
         tz,
       }
     }
-    // Weekly on N days at HH:MM
+    // Daily at HH:MM. `M H * * *` is what anyone writing a cron by hand
+    // reaches for, and what the backend's own seed scripts emit; without it
+    // a plain daily rule fell through to the every-30-minutes fallback and
+    // the picker offered to save that back.
+    if (/^\d+$/.test(min) && /^\d+$/.test(hour) && dom === '*' && dow === '*') {
+      return {
+        mode: ScheduleMode.EveryNDays,
+        everyN: 1,
+        time: `${hour.padStart(2, '0')}:${min.padStart(2, '0')}`,
+        tz,
+      }
+    }
+    // Weekly on N days at HH:MM. Accepts both the `1,2,3` list this module
+    // writes and the `1-5` range a human would, expanding the range so the
+    // day toggles come up checked.
     if (
       /^\d+$/.test(min) &&
       /^\d+$/.test(hour) &&
       dom === '*' &&
-      /^(\d+)(,\d+)*$/.test(dow)
+      /^(\d+)([,-]\d+)*$/.test(dow)
     ) {
-      const days = dow.split(',').map(Number)
+      const days = dow.split(',').flatMap((part) => {
+        const range = /^(\d+)-(\d+)$/.exec(part)
+        if (!range) return [Number(part)]
+        const [from, to] = [Number(range[1]), Number(range[2])]
+        if (from > to) return [from, to]
+        return Array.from({ length: to - from + 1 }, (_, i) => from + i)
+      })
       return {
         mode: ScheduleMode.Weekly,
         daysOfWeek: days,
