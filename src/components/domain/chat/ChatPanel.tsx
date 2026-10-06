@@ -10,7 +10,8 @@ import type { ChatMessage, ChatPanelLabels } from './types'
 export interface ChatPanelProps extends ChatPanelLabels {
   messages: ChatMessage[]
   /** Called when the user submits a new message. Awaited; while pending
-   *  the composer disables itself. */
+   *  the composer disables itself. Reject to keep the text in the composer
+   *  (e.g. the server refused it); the host shows the reason. */
   onSendMessage: (text: string) => void | Promise<void>
   /** While true, a "thinking…" indicator is shown at the bottom of the
    *  thread. Independent of per-message ``isPartial`` so the host can

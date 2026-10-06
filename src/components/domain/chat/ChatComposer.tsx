@@ -5,7 +5,9 @@ import { Button } from '../../ui/button'
 
 export interface ChatComposerProps {
   /** Called with the trimmed message text when the user submits. The
-   *  promise is awaited; while pending the composer disables itself. */
+   *  promise is awaited; while pending the composer disables itself. If it
+   *  rejects, the draft stays in the field so nothing typed is lost; the
+   *  host shows why. */
   onSend: (text: string) => void | Promise<void>
   placeholder?: string
   sendLabel?: string
@@ -52,6 +54,8 @@ export function ChatComposer({
       // Re-focus so the user can keep typing the next reply without
       // reaching for the mouse.
       textareaRef.current?.focus()
+    } catch {
+      // Not sent: keep the draft for another try. The host reports the error.
     } finally {
       setSubmitting(false)
     }
