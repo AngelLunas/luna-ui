@@ -67,7 +67,9 @@ export const AutoScrollContainer = React.forwardRef<
       <div
         ref={scrollRef}
         className={cn(
-          'h-full min-h-0 overflow-y-auto overflow-x-hidden',
+          // The gutter is kept even before the feed overflows, so the
+          // scrollbar showing up mid-stream doesn't narrow and re-wrap it.
+          'h-full min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]',
           viewportClassName,
         )}
         {...rest}

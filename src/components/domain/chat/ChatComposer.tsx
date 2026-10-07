@@ -10,6 +10,9 @@ export interface ChatComposerProps {
    *  host shows why. */
   onSend: (text: string) => void | Promise<void>
   placeholder?: string
+  /** Accessible name of the message field: a placeholder vanishes once the
+   *  user types and is not announced reliably, so the field needs its own. */
+  label?: string
   sendLabel?: string
   /** Disables the composer regardless of internal state (e.g. while the
    *  prior turn is still streaming server-side). */
@@ -33,6 +36,7 @@ const DEFAULT_MAX_LENGTH = 4000
 export function ChatComposer({
   onSend,
   placeholder = DEFAULT_PLACEHOLDER,
+  label = 'Message',
   sendLabel = 'Send',
   disabled,
   maxLength = DEFAULT_MAX_LENGTH,
@@ -85,6 +89,7 @@ export function ChatComposer({
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        aria-label={label}
         disabled={effectiveDisabled}
         maxLength={maxLength}
         rows={2}

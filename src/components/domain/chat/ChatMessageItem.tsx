@@ -34,8 +34,12 @@ export interface ChatMessageItemProps {
  * + MarkdownText body. Tool blocks (when opted in) reuse
  * ``ToolCallView`` so a chat panel surfacing agent tool calls looks
  * identical to the run timeline.
+ *
+ * Memoized: while a reply streams in, the panel re-renders on every delta,
+ * and a host that keeps the earlier messages as the same objects spares
+ * them a Markdown re-parse each time.
  */
-export function ChatMessageItem({
+export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   showToolBlocks = false,
   className,
@@ -98,7 +102,7 @@ export function ChatMessageItem({
       )}
     </div>
   )
-}
+})
 
 
 /**

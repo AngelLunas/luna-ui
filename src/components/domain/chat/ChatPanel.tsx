@@ -58,6 +58,7 @@ export function ChatPanel({
   header,
   emptyState = DEFAULT_EMPTY_STATE,
   composerPlaceholder,
+  composerLabel,
   sendLabel,
   streamingLabel = 'Assistant is thinking…',
   jumpToBottomLabel,
@@ -101,6 +102,7 @@ export function ChatPanel({
       <ChatComposer
         onSend={onSendMessage}
         placeholder={composerPlaceholder}
+        label={composerLabel}
         sendLabel={sendLabel}
         disabled={composerDisabled}
       />

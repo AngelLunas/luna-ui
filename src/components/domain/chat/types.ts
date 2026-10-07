@@ -74,6 +74,8 @@ export interface ChatMessage {
 export interface ChatPanelLabels {
   /** Placeholder in the composer input. */
   composerPlaceholder?: string
+  /** Accessible name of the composer input (default "Message"). */
+  composerLabel?: string
   /** Button label for the send action. */
   sendLabel?: string
   /** Message shown when the streaming indicator is active. */
