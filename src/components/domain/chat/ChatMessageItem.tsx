@@ -11,6 +11,7 @@ import {
   ChatRole,
   type ChatContentBlock,
   type ChatMessage,
+  type ChatToolCallRenderer,
   type ChatToolResultBlock,
   type ChatToolUseBlock,
 } from './types'
@@ -21,6 +22,10 @@ export interface ChatMessageItemProps {
    *  ``ToolCallView`` used in the run timeline. Default: false — most
    *  user-facing chats don't expose tool plumbing. */
   showToolBlocks?: boolean
+  /** Draws a tool call in place of the default; see `ChatToolCallRenderer`.
+   *  A call it returns `undefined` for falls back to `showToolBlocks`. Keep
+   *  it stable (`useCallback`): the item is memoized. */
+  renderToolCall?: ChatToolCallRenderer
   className?: string
 }
 
@@ -34,10 +39,15 @@ export interface ChatMessageItemProps {
  * + MarkdownText body. Tool blocks (when opted in) reuse
  * ``ToolCallView`` so a chat panel surfacing agent tool calls looks
  * identical to the run timeline.
+ *
+ * Memoized: while a reply streams in, the panel re-renders on every delta,
+ * and a host that keeps the earlier messages as the same objects spares
+ * them a Markdown re-parse each time.
  */
-export function ChatMessageItem({
+export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   showToolBlocks = false,
+  renderToolCall,
   className,
 }: ChatMessageItemProps) {
   const text = extractText(message.content)
@@ -80,8 +90,19 @@ export function ChatMessageItem({
     sequence: 0,
     timestamp: message.createdAt,
   }
+  // A host renderer gets the first say on each call; whatever it leaves
+  // (`undefined`) draws as before, and only when `showToolBlocks` is on.
+  const toolNodes: React.ReactNode[] = []
+  for (const item of toolItems) {
+    const custom = item.kind === 'call' ? renderToolCall?.(item.use, item.result) : undefined
+    if (custom !== undefined) {
+      if (custom !== null) toolNodes.push(<React.Fragment key={item.key}>{custom}</React.Fragment>)
+    } else if (showToolBlocks) {
+      toolNodes.push(renderToolItem(item, message.id))
+    }
+  }
   const hasRenderableText = text.length > 0
-  const renderToolBlocks = showToolBlocks && toolItems.length > 0
+  const renderToolBlocks = toolNodes.length > 0
   const showMessageView = hasRenderableText || !renderToolBlocks
   return (
     <div className={cn('px-4 py-2', className)}>
@@ -93,12 +114,12 @@ export function ChatMessageItem({
             showMessageView ? 'mt-2' : '',
           )}
         >
-          {toolItems.map((item) => renderToolItem(item, message.id))}
+          {toolNodes}
         </div>
       )}
     </div>
   )
-}
+})
 
 
 /**

@@ -7,7 +7,7 @@ import type { JSONContent } from '@tiptap/core'
  *   `${context.<source>}`           — whole source dict (stringified)
  *   `${context.<source>.<path>}`    — drilled-in scalar/branch
  *
- * The path part is optional — without it, the backend's `_format_template`
+ * The path part is optional — without it, the backend's `format_template`
  * substitutes the full loaded dict (str-coerced). The brackets in `[*]`
  * and dots inside paths are part of the path grammar — match the backend's
  * parser, not a stricter identifier rule.

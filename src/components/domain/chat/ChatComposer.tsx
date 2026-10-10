@@ -5,9 +5,14 @@ import { Button } from '../../ui/button'
 
 export interface ChatComposerProps {
   /** Called with the trimmed message text when the user submits. The
-   *  promise is awaited; while pending the composer disables itself. */
+   *  promise is awaited; while pending the composer disables itself. If it
+   *  rejects, the draft stays in the field so nothing typed is lost; the
+   *  host shows why. */
   onSend: (text: string) => void | Promise<void>
   placeholder?: string
+  /** Accessible name of the message field: a placeholder vanishes once the
+   *  user types and is not announced reliably, so the field needs its own. */
+  label?: string
   sendLabel?: string
   /** Disables the composer regardless of internal state (e.g. while the
    *  prior turn is still streaming server-side). */
@@ -31,6 +36,7 @@ const DEFAULT_MAX_LENGTH = 4000
 export function ChatComposer({
   onSend,
   placeholder = DEFAULT_PLACEHOLDER,
+  label = 'Message',
   sendLabel = 'Send',
   disabled,
   maxLength = DEFAULT_MAX_LENGTH,
@@ -52,6 +58,8 @@ export function ChatComposer({
       // Re-focus so the user can keep typing the next reply without
       // reaching for the mouse.
       textareaRef.current?.focus()
+    } catch {
+      // Not sent: keep the draft for another try. The host reports the error.
     } finally {
       setSubmitting(false)
     }
@@ -81,6 +89,7 @@ export function ChatComposer({
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        aria-label={label}
         disabled={effectiveDisabled}
         maxLength={maxLength}
         rows={2}

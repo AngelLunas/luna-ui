@@ -5,12 +5,13 @@ import { AutoScrollContainer } from '../primitives/AutoScrollContainer'
 import { EmptyState } from '../primitives/EmptyState'
 import { ChatComposer } from './ChatComposer'
 import { ChatMessageItem } from './ChatMessageItem'
-import type { ChatMessage, ChatPanelLabels } from './types'
+import type { ChatMessage, ChatPanelLabels, ChatToolCallRenderer } from './types'
 
 export interface ChatPanelProps extends ChatPanelLabels {
   messages: ChatMessage[]
   /** Called when the user submits a new message. Awaited; while pending
-   *  the composer disables itself. */
+   *  the composer disables itself. Reject to keep the text in the composer
+   *  (e.g. the server refused it); the host shows the reason. */
   onSendMessage: (text: string) => void | Promise<void>
   /** While true, a "thinking…" indicator is shown at the bottom of the
    *  thread. Independent of per-message ``isPartial`` so the host can
@@ -29,6 +30,10 @@ export interface ChatPanelProps extends ChatPanelLabels {
   /** When true, tool_use / tool_result blocks inside assistant messages
    *  are rendered using ToolCallView / JsonDisclosure. Default: false. */
   showToolBlocks?: boolean
+  /** Draws chosen tool calls in place of the default (a host's own card for
+   *  one tool, say); `undefined` from it keeps the default for that call.
+   *  Keep it stable (`useCallback`): message items are memoized. */
+  renderToolCall?: ChatToolCallRenderer
   className?: string
 }
 
@@ -57,10 +62,12 @@ export function ChatPanel({
   header,
   emptyState = DEFAULT_EMPTY_STATE,
   composerPlaceholder,
+  composerLabel,
   sendLabel,
   streamingLabel = 'Assistant is thinking…',
   jumpToBottomLabel,
   showToolBlocks,
+  renderToolCall,
   className,
 }: ChatPanelProps) {
   return (
@@ -86,6 +93,7 @@ export function ChatPanel({
                 key={message.id}
                 message={message}
                 showToolBlocks={showToolBlocks}
+                renderToolCall={renderToolCall}
               />
             ))
           )}
@@ -100,6 +108,7 @@ export function ChatPanel({
       <ChatComposer
         onSend={onSendMessage}
         placeholder={composerPlaceholder}
+        label={composerLabel}
         sendLabel={sendLabel}
         disabled={composerDisabled}
       />
