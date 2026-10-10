@@ -5,7 +5,7 @@ import { AutoScrollContainer } from '../primitives/AutoScrollContainer'
 import { EmptyState } from '../primitives/EmptyState'
 import { ChatComposer } from './ChatComposer'
 import { ChatMessageItem } from './ChatMessageItem'
-import type { ChatMessage, ChatPanelLabels } from './types'
+import type { ChatMessage, ChatPanelLabels, ChatToolCallRenderer } from './types'
 
 export interface ChatPanelProps extends ChatPanelLabels {
   messages: ChatMessage[]
@@ -30,6 +30,10 @@ export interface ChatPanelProps extends ChatPanelLabels {
   /** When true, tool_use / tool_result blocks inside assistant messages
    *  are rendered using ToolCallView / JsonDisclosure. Default: false. */
   showToolBlocks?: boolean
+  /** Draws chosen tool calls in place of the default (a host's own card for
+   *  one tool, say); `undefined` from it keeps the default for that call.
+   *  Keep it stable (`useCallback`): message items are memoized. */
+  renderToolCall?: ChatToolCallRenderer
   className?: string
 }
 
@@ -63,6 +67,7 @@ export function ChatPanel({
   streamingLabel = 'Assistant is thinking…',
   jumpToBottomLabel,
   showToolBlocks,
+  renderToolCall,
   className,
 }: ChatPanelProps) {
   return (
@@ -88,6 +93,7 @@ export function ChatPanel({
                 key={message.id}
                 message={message}
                 showToolBlocks={showToolBlocks}
+                renderToolCall={renderToolCall}
               />
             ))
           )}

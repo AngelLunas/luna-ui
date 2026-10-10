@@ -61,6 +61,16 @@ export type ChatContentBlock =
   | ChatToolResultBlock
   | { type: string; [key: string]: unknown }
 
+/**
+ * Draws one tool call (with its result, once there is one) in place of the
+ * default rendering. Return a node to draw it, `null` to draw nothing, or
+ * `undefined` to fall back to the default (`showToolBlocks`).
+ */
+export type ChatToolCallRenderer = (
+  call: ChatToolUseBlock,
+  result?: ChatToolResultBlock,
+) => import('react').ReactNode | undefined
+
 export interface ChatMessage {
   id: string
   role: ChatRole

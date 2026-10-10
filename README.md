@@ -579,7 +579,7 @@ Turn a flat stream of luna-core `RunEvent`s into a readable narrative. The heart
 A generic, agent-agnostic conversation UI that reuses the run-inspector blocks for visual parity.
 
 #### `ChatPanel`
-Full-height container: auto-scrolling message list + composer + streaming indicator. Extends `ChatPanelLabels` (`composerPlaceholder?`, `sendLabel?`, `streamingLabel?`, `jumpToBottomLabel?`).
+Full-height container: auto-scrolling message list + composer + streaming indicator. Extends `ChatPanelLabels` (`composerPlaceholder?`, `composerLabel?`, `sendLabel?`, `streamingLabel?`, `jumpToBottomLabel?`).
 
 | Prop | Type | Notes |
 | --- | --- | --- |
@@ -590,14 +590,15 @@ Full-height container: auto-scrolling message list + composer + streaming indica
 | `header?` | `React.ReactNode` | e.g. a context summary |
 | `emptyState?` | `React.ReactNode` | `null` renders nothing |
 | `showToolBlocks?` | `boolean` | Render `tool_use`/`tool_result` via `ToolCallView` |
+| `renderToolCall?` | `ChatToolCallRenderer` | `(call, result?) => ReactNode \| undefined`: draw a tool call your own way (a node), hide it (`null`), or keep the default (`undefined`). The result is paired by `tool_use_id` within the same message. Keep it stable (`useCallback`): items are memoized |
 
 #### `ChatMessageItem`
-`message: ChatMessage`, `showToolBlocks?: boolean`. User turns render as right-aligned bubbles; assistant/system turns defer to `AgentMessageView`.
+`message: ChatMessage`, `showToolBlocks?: boolean`, `renderToolCall?: ChatToolCallRenderer`. User turns render as right-aligned bubbles; assistant/system turns defer to `AgentMessageView`.
 
 #### `ChatComposer`
 `onSend: (text) => void | Promise<void>`, `placeholder?`, `sendLabel?`, `disabled?`, `maxLength?` (default 4000, mirroring the API bound). Enter sends, Shift+Enter newlines.
 
-**Types** (mirror Anthropic's content-block shape so backend payloads deserialize directly): `ChatRole`, `ChatContentBlockType`, `ChatMessage` (`{ id; role; content; createdAt; isPartial? }`), `ChatContentBlock` = `ChatTextBlock | ChatToolUseBlock | ChatToolResultBlock`, `ChatPanelLabels`.
+**Types** (mirror Anthropic's content-block shape so backend payloads deserialize directly): `ChatRole`, `ChatContentBlockType`, `ChatMessage` (`{ id; role; content; createdAt; isPartial? }`), `ChatContentBlock` = `ChatTextBlock | ChatToolUseBlock | ChatToolResultBlock`, `ChatToolCallRenderer`, `ChatPanelLabels`.
 
 ---
 

@@ -9,5 +9,6 @@ export {
   type ChatTextBlock,
   type ChatToolUseBlock,
   type ChatToolResultBlock,
+  type ChatToolCallRenderer,
   type ChatPanelLabels,
 } from './types'
